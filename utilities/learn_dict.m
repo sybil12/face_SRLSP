@@ -47,7 +47,7 @@ clear features_pca
 tic;
 fprintf('Training [%d x %d] dictionary on %d vectors using K-SVD\n', ...
     size(ksvd_conf.data, 1), ksvd_conf.dictsize, size(ksvd_conf.data, 2))
-[conf.dict_lores, gamma] = ksvd(ksvd_conf); 
+[conf.dict_lores, gamma] = ksvd(ksvd_conf);  % s: gamma is the coefficient matrix
 toc;
 
 fprintf('Computing high-res. dictionary from low-res. dictionary\n');
@@ -55,6 +55,6 @@ fprintf('Computing high-res. dictionary from low-res. dictionary\n');
 % X_hires = dict_hires * gamma {hopefully}
 % dict_hires = patches / full(gamma); % Takes too much memory...
 patches = double(patches); % Since it is saved in single-precision.
-dict_hires = (patches * gamma') * inv(full(gamma * gamma'));
+dict_hires = (patches * gamma')/(full(gamma * gamma')); %full ½«Ï¡Êè¾ØÕó×ª»»ÎªÂú¾ØÕó
 
 conf.dict_hires = double(dict_hires); 

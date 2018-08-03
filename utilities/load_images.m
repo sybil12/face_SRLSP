@@ -1,4 +1,4 @@
-function [imgs imgsCB imgsCR] = load_images(paths)
+function [imgs, imgsCB, imgsCR] = load_images(paths)
 
 imgs = cell(size(paths));
 imgsCB = cell(size(paths));

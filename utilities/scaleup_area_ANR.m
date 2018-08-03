@@ -1,9 +1,9 @@
-function [imgs, midres] = scaleup_ANR(conf, imgs)
+function res = scaleup_area_ANR(conf, imgs)
+% scaleup_ANR.m use "lr imgs"
+% scaleup_area_ANR.m use "cropped interpolated imgs"
 
-% Super-Resolution Iteration
-%     fprintf('Scale-Up ANR');
-midres = resize(imgs, conf.upsample_factor, conf.interpolate_kernel);
-
+midres = imgs;
+res = cell(1,numel(midres));
 for i = 1:numel(midres)
     features = collect(conf, {midres{i}}, conf.upsample_factor, conf.filters);
     features = double(features);
@@ -14,11 +14,11 @@ for i = 1:numel(midres)
     
     patches = zeros(size(conf.PP,1),size(features,2));
     blocksize = 50000; %if not sufficient memory then you can reduce the blocksize
-    if size(conf.pointslo,2) > 10000
+    if size(conf.dict_lores,2) > 10000
         blocksize = 500;
     end
     if size(features,2) < blocksize
-        D = abs(conf.pointslo'*features);
+        D = abs(conf.dict_lores'*features);
         [~, idx] = max(D);
         
         %if number of patches >> number of atoms in dictionary then you
@@ -33,12 +33,12 @@ for i = 1:numel(midres)
             patches(:,l) = conf.PPs{idx(l)} * features(:,l);
         end
     else
-        
+        %% 分块进行计算
         for b = 1:blocksize:size(features,2)
             if b+blocksize-1 > size(features,2)
-                D = abs(conf.pointslo'*features(:,b:end));
+                D = abs(conf.dict_lores'*features(:,b:end));
             else
-                D = abs(conf.pointslo'*features(:,b:b+blocksize-1));
+                D = abs(conf.dict_lores'*features(:,b:b+blocksize-1));
             end
             [~, idx] = max(D);
             
@@ -58,12 +58,14 @@ for i = 1:numel(midres)
     % Add low frequencies to each reconstructed patch
     patches = patches + collect(conf, {midres{i}}, conf.scale, {});
     
-    % Combine all patches into one image
-    img_size = size(imgs{i}) * conf.scale;
+    % here img size is different from scaleup_ANR
+    img_size = size(imgs{i});
+%     grid = sampling_grid(img_size, ...
+%         conf.window, conf.overlap, conf.border, conf.scale);
     grid = sampling_grid(img_size, ...
         conf.window, conf.overlap, conf.border, conf.scale);
     result = overlap_add(patches, img_size, grid);
-    imgs{i} = result; % for the next iteration
+    res{i} = result; % for the next iteration
     %         fprintf('.');
 end
 % fprintf('\n');

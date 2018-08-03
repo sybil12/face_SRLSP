@@ -1,7 +1,15 @@
-function [features] = collect(conf, imgs, scale, filters, verbose)
+function [features] = collect(conf, imgs, scale, filters, verbose, area_flag, area) 
+% if area_flag=1, just collect features range in
+% [area(1),area(2)]~[area(1)+area(3),area(2)+area(4)].
+% area work in collet->extract->sampling_grid
+% used in learn_area_dict.m(deleted), replaced by get_area before collect.m
 
 if nargin < 5
     verbose = 0;
+end
+if nargin < 7
+    area_flag = 0;
+    area = [];
 end
 
 num_of_imgs = numel(imgs);
@@ -21,7 +29,7 @@ for i = 1:num_of_imgs
         fprintf(' [%d x %d]', sz(1), sz(2));
     end
     
-    F = extract(conf, imgs{i}, scale, filters);
+    F = extract(conf, imgs{i}, scale, filters, area_flag, area);
     num_of_features = num_of_features + size(F, 2);
     feature_cell{i} = F;
 

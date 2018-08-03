@@ -1,6 +1,6 @@
-function [PPs,dicts] = trainP_faceSR_for_dict(YH, YL, imrow, imcol, upscale,patch_size,overlap, lambda)
-%UNTITLED5 此处显示有关此函数的摘要
-%   此处显示详细说明
+function [PPs,dicts] = trainP_faceSR_for_dict(YH, YL, imrow, imcol, upscale,patch_size,overlap,impat_flag, lambda)
+%trainP_faceSR_for_dict 此处显示有关此函数的摘要
+%   此处显示详细说明 目标position的部分patch参与计算，并考虑局部性约束
 
 %     % get high frequency of HR patches by interpolated reducing
 %     for s = 1:size(YH,3)
@@ -14,9 +14,12 @@ function [PPs,dicts] = trainP_faceSR_for_dict(YH, YL, imrow, imcol, upscale,patc
     V = ceil((imcol-overlap)/(patch_size-overlap));
 
     dict_size = 36;
-    clusterszA = 100;
-    alpha       = 1.2;
+    clusterszA = 120;
+    alpha = 1.2;
+%    dict_str = ['./data/YH_YL_CMDP_' num2str(U) 'x' num2str(V) '_on_' num2str(dict_size) 'atoms_dicts.mat' ];
+%    dict_str = ['./data/YH_YL_FEI_' num2str(U) 'x' num2str(V) '_s' num2str(upscale) '_p' num2str(impat_flag) '_on_' num2str(dict_size) 'atoms_dicts.mat' ];
     dict_str = ['./data/YH_YL_FEI_' num2str(U) 'x' num2str(V) '_on_' num2str(dict_size) 'atoms_dicts.mat' ];
+
     dict_flag = 0;
     if exist(dict_str,'file')
         dict_flag = 1;
@@ -58,15 +61,15 @@ function [PPs,dicts] = trainP_faceSR_for_dict(YH, YL, imrow, imcol, upscale,patc
             for  d= 1:size(dl,2)
                 dl_atom = dl(d);
 
-                D = pdist2(single(lrps_l2'),single(dl(:,d)'));  %Distance matrix, use Euclidean  /return a cloumn vector
-                [~, idx] = sort(D);
-                Lo = Xl_patches(:, idx(1:clusterszA));
-                Hi = Xh_patches(:, idx(1:clusterszA));
-                Dis = sum((repmat(dl_atom,1,clusterszA) - lrps_l2(:, idx(1:clusterszA))).^2);
+%                D = pdist2(single(lrps_l2'),single(dl(:,d)'));  %Distance matrix, use Euclidean  /return a cloumn vector
+%                [~, idx] = sort(D);
+%                Lo = Xl_patches(:, idx(1:clusterszA));
+%                Hi = Xh_patches(:, idx(1:clusterszA));
+%                Dis = sum((repmat(dl_atom,1,clusterszA) - lrps_l2(:, idx(1:clusterszA))).^2);
 
-%                 Lo = Xl_patches;
-%                 Hi = Xh_patches;
-%                 Dis = sum((repmat(dl_atom,1,size(lrps_l2,2)) - lrps_l2).^2);
+                Lo = Xl_patches;
+                Hi = Xh_patches;
+                Dis = sum((repmat(dl_atom,1,size(lrps_l2,2)) - lrps_l2).^2);
                 Dis = 1./(Dis+1e-6).^alpha;
                 PPs{i, j}{d} = Hi*diag(Dis)*Lo'*pinv(Lo*diag(Dis)*Lo'+1e-9*eye(size(Lo,1)));       %pinv
             end

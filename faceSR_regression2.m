@@ -3,7 +3,6 @@
 % local patch based global regression face super resolution
 % version1.1 回归器学习在SR之前，使用row patch进行计算
 % version2.0 学习局部字典，代价太高 对应的faceSR2.m
-% version3.0 学习局部字典，代价太高 对应的faceSR2.m
 %=========================================================================
 
 

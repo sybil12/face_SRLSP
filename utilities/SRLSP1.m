@@ -1,5 +1,6 @@
 
-function im_SR = SRLSP(im_l,YH,YL,upscale,patch_size,overlap,alpha,center_flag,impat_pixel)
+function im_SR = SRLSP1(im_l,YH,YL,upscale,patch_size,overlap,alpha)
+% 2017 TIP face hallucination using linear models of coupled sparse support
 
 [imrow, imcol , ~] = size(YH);
 
@@ -9,7 +10,6 @@ overlap_FLAG = zeros(imrow,imcol);
 U = ceil((imrow-overlap)/(patch_size-overlap));
 V = ceil((imcol-overlap)/(patch_size-overlap));
 
-sub_flag = zeros(patch_size-1);
 % super-resolve the HR image patch by patch
 for i = 1:U
    fprintf('.');
@@ -17,7 +17,7 @@ for i = 1:U
 
         BlockSize = GetCurrentBlockSize(imrow,imcol,patch_size,overlap,i,j);
         BlockSize(1) = BlockSize(1)+1; BlockSize(3) = BlockSize(3)+1;
-        BlockSizeS = GetCurrentBlockSize(imrow/upscale,imcol/upscale,patch_size/upscale,overlap/upscale,i,j);
+%         BlockSizeS = GetCurrentBlockSize(imrow/upscale,imcol/upscale,patch_size/upscale,overlap/upscale,i,j);
         BlockSize = floor(BlockSize);
         BlockSizeS = floor(BlockSizeS);
 
@@ -25,35 +25,17 @@ for i = 1:U
 %         imshow(im_l_patch)
         im_l_patch = im_l_patch(:);   % Reshape 2D image patch into 1D column vectors
 
-%         XF = ExtrImg3D(YH,BlockSize,center_flag,impat_pixel,upscale);    % reshape each patch of HR face image to one column
         %B2-不保留原像素点
-        XF  = Reshape3D(YH,BlockSize);
-        X  = Reshape3D(YL,BlockSizeS);   % reshape each patch of LR face image to one column
+        XF  = Reshape3D(YH,BlockSize);  % reshape each patch of HR face image to one column
+        X  = Reshape3D(YL,BlockSizeS);	% reshape each patch of LR face image to one column
+
+
 
         % smooth regression
         Dis = sum((repmat(im_l_patch,1,size(X,2))-X).^2);
         Dis = 1./(Dis+1e-6).^alpha;
         P = XF*diag(Dis)*X'*pinv(X*diag(Dis)*X'+1e-9*eye(size(X,1)));       %pinv
         P_patch = P*im_l_patch;
-
-        % obtain the HR patch
-%         % 保留LR像素点
-%         Img_flag = zeros(patch_size-1,patch_size-1);
-%         Img_flag(1:upscale:end,1:upscale:end) = -1;
-%
-%         Img = zeros(patch_size-1,patch_size-1);
-%         Img(Img_flag==-1) = im_l_patch;  %if Img doesn't init,then it has the same size as Img_flag
-%         sub_flag(Img_flag==-1) = 1; %原LR像素点也参与求平均
-%
-%         if center_flag == 1
-%             Img_flag([1:impat_pixel/2 end-(impat_pixel/2-1):end],:) = -1;
-%             Img_flag(:,[1:impat_pixel/2 end-(impat_pixel/2-1):end]) = -1;
-%         end
-%         % 计算得到的SR像素点
-%         Img(Img_flag~=-1) = P_patch;
-%         sub_flag(Img_flag~=-1) = 1;
-
-        %B2-不保留LR像素点 所有像素都计算
         Img = P_patch;
 
         % integrate all the LR patch

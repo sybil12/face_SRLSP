@@ -51,7 +51,7 @@ for TestImgIndex = 1:nTesting
     
     % face SR 
     tic
-    [im_SR] = faceSR(im_l,YH,YL,upscale,patch_size,overlap);
+    [im_SR] = faceSR1(im_l,YH,YL,upscale,patch_size,overlap);
     toc
     
     % bicubic interpolation for reference

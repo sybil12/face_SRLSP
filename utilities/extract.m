@@ -1,8 +1,16 @@
-function [features] = extract(conf, X, scale, filters)
+function [features] = extract(conf, X, scale, filters, area_flag, area)
+% if area_flag=1, just collect features range in
+% [area(1),area(2)]~[area(1)+area(3),area(2)+area(4)].
+% area work in extract->sampling_grid
+
+if nargin < 6
+    area_flag = 0;
+    area = [];
+end
 
 % Compute one grid for all filters
 grid = sampling_grid(size(X), ...
-    conf.window, conf.overlap, conf.border, scale);
+    conf.window, conf.overlap, conf.border, scale, area_flag, area);
 feature_size = prod(conf.window) * numel(conf.filters);
 
 % Current image features extraction [feature x index]
